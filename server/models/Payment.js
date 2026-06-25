@@ -10,7 +10,7 @@ const paymentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'FeeRecord',
     required: [true, 'Fee record ID is required'],
-  },
+  },  something
   studentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
