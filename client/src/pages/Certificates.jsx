@@ -3,7 +3,7 @@ import { HiOutlineSearch, HiCheckCircle } from 'react-icons/hi';
 import { HiDocumentText, HiDocumentCheck } from 'react-icons/hi2';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
-import api from '../services/api';
+import * as api from '../services/api';
 
 const Certificates = () => {
   const [searchQuery, setSearchQuery] = useState('');

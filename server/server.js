@@ -18,6 +18,7 @@ const feeRoutes = require('./routes/feeRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const certificateRoutes = require('./routes/certificateRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const schoolSettingRoutes = require('./routes/schoolSettingRoutes');
 
 // Import error handler middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -26,11 +27,21 @@ const errorHandler = require('./middleware/errorHandler');
 const app = express();
 
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Static Files
+// ---------------------------------------------------------------------------
+// Serve uploaded files as static assets BEFORE helmet adds security headers
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// ---------------------------------------------------------------------------
 // Middleware
 // ---------------------------------------------------------------------------
 
-// Security headers
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  xFrameOptions: false,
+  contentSecurityPolicy: false,
+}));
 
 // Enable CORS for all origins (configure as needed for production)
 app.use(cors());
@@ -44,9 +55,6 @@ app.use(express.json({ limit: '10mb' }));
 // Parse URL-encoded form data
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded files as static assets
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 // ---------------------------------------------------------------------------
 // API Routes
 // ---------------------------------------------------------------------------
@@ -57,6 +65,7 @@ app.use('/api/fees', feeRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/settings', schoolSettingRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

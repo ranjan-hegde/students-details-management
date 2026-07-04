@@ -14,6 +14,8 @@ import {
   HiEnvelope,
   HiCheckCircle,
   HiXMark,
+  HiPrinter,
+  HiEye,
   HiArrowPath,
 } from 'react-icons/hi2';
 import toast from 'react-hot-toast';
@@ -29,6 +31,8 @@ import {
   generateBonafide,
   generateTC,
   deleteDocument,
+  getSchoolSettings,
+  updateSchoolSettings
 } from '../services/api';
 
 const tabs = ['Profile Info', 'Documents', 'Fee Details', 'Certificates'];
@@ -57,11 +61,12 @@ export default function StudentDetail() {
   const [documents, setDocuments] = useState([]);
   const [feeRecord, setFeeRecord] = useState(null);
   const [payments, setPayments] = useState([]);
+  const [previewDoc, setPreviewDoc] = useState(null);
   const [certificates, setCertificates] = useState([]);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentData, setPaymentData] = useState({ amount: '', paymentMode: 'cash', remarks: '' });
   const [submitting, setSubmitting] = useState(false);
-
+  console.log(student)
   useEffect(() => {
     fetchStudent();
   }, [id]);
@@ -78,6 +83,7 @@ export default function StudentDetail() {
     setLoading(true);
     try {
       const res = await getStudent(id);
+
       setStudent(res.data.data || res.data);
     } catch (error) {
       toast.error('Failed to load student details');
@@ -89,7 +95,7 @@ export default function StudentDetail() {
   const fetchDocuments = async () => {
     try {
       const res = await getDocuments(id);
-      setDocuments(res.data.documents || res.data || []);
+      setDocuments(res.data.data || []);
     } catch {
       setDocuments([]);
     }
@@ -98,8 +104,8 @@ export default function StudentDetail() {
   const fetchFeeDetails = async () => {
     try {
       const [feeRes, payRes] = await Promise.all([getFeeRecord(id), getPayments(id)]);
-      setFeeRecord(feeRes.data.feeRecord || feeRes.data);
-      setPayments(payRes.data.payments || payRes.data || []);
+      setFeeRecord(feeRes.data.data || feeRes.data.feeRecord || feeRes.data);
+      setPayments(payRes.data.data || payRes.data.payments || []);
     } catch {
       setFeeRecord(null);
       setPayments([]);
@@ -109,7 +115,7 @@ export default function StudentDetail() {
   const fetchCertificates = async () => {
     try {
       const res = await getCertificates(id);
-      setCertificates(res.data.certificates || res.data || []);
+      setCertificates(res.data.data || res.data.certificates || []);
     } catch {
       setCertificates([]);
     }
@@ -210,7 +216,8 @@ export default function StudentDetail() {
 
   const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
   const totalFee = feeRecord?.totalFee || 0;
-  const pendingAmount = totalFee - totalPaid;
+  const pendingAmount = totalFee > 0 ? totalFee - totalPaid : 0;
+  const feeNotSet = !feeRecord || totalFee === 0;
 
   return (
     <div>
@@ -245,6 +252,14 @@ export default function StudentDetail() {
                 {student.status || 'Active'}
               </span>
             </div>
+          </div>
+          <div>
+            <Link
+              to={`/students/${id}/edit`}
+              className="px-5 py-2.5 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition shadow-sm border border-blue-100"
+            >
+              Edit Profile
+            </Link>
           </div>
         </div>
       </div>
@@ -354,24 +369,72 @@ export default function StudentDetail() {
                     </button>
                   </div>
                   {doc.url && (
-                    <div className="w-full h-32 bg-gray-100 rounded-lg mb-4 overflow-hidden">
-                      <img src={doc.url} alt={doc.type} className="w-full h-full object-cover" />
+                    <div className="w-full h-32 bg-gray-100 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
+                      {doc.url.toLowerCase().endsWith('.pdf') ? (
+                        <div className="flex flex-col items-center justify-center text-red-500">
+                          <HiDocumentText className="w-12 h-12 mb-1" />
+                          <span className="text-xs font-medium">PDF Document</span>
+                        </div>
+                      ) : (
+                        <img src={doc.url} alt={doc.type} className="w-full h-full object-cover" />
+                      )}
                     </div>
                   )}
                   <p className="text-sm text-gray-600 truncate">{doc.filename || doc.originalName || 'Document'}</p>
                   {doc.url && (
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 mt-2 font-medium"
-                    >
-                      <HiArrowDownTray className="w-4 h-4" />
-                      Download
-                    </a>
+                    <div className="flex items-center gap-4 mt-2">
+                      <button
+                        onClick={() => setPreviewDoc(doc)}
+                        className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 font-medium"
+                      >
+                        <HiEye className="w-4 h-4" />
+                        Preview
+                      </button>
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        <HiArrowDownTray className="w-4 h-4" />
+                        Download
+                      </a>
+                    </div>
                   )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Document Preview Modal */}
+          {previewDoc && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+              <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-800">{previewDoc.filename || previewDoc.originalName || 'Document Preview'}</h3>
+                  <button
+                    onClick={() => setPreviewDoc(null)}
+                    className="p-1 text-gray-500 hover:bg-gray-100 rounded-lg transition"
+                  >
+                    <HiXMark className="w-6 h-6" />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-auto bg-gray-50 p-4 flex items-center justify-center min-h-[500px]">
+                  {previewDoc.url?.toLowerCase().endsWith('.pdf') ? (
+                    <iframe
+                      src={previewDoc.url}
+                      title="PDF Preview"
+                      className="w-full h-full min-h-[70vh] rounded-lg shadow-sm border-0"
+                    />
+                  ) : (
+                    <img 
+                      src={previewDoc.url} 
+                      alt="Preview" 
+                      className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
+                    />
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -449,7 +512,7 @@ export default function StudentDetail() {
                   >
                     <option value="cash">Cash</option>
                     <option value="upi">UPI</option>
-                    <option value="bank">Bank Transfer</option>
+                    <option value="bank_transfer">Bank Transfer</option>
                     <option value="cheque">Cheque</option>
                   </select>
                 </div>

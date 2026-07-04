@@ -1,12 +1,14 @@
 const Payment = require('../models/Payment');
 const FeeRecord = require('../models/FeeRecord');
 const Student = require('../models/Student');
-
+console.log(Student)
 /**
  * @desc    Record a new payment (auto-generates receipt number, pushes to fee record)
  * @route   POST /api/payments
  */
+
 exports.createPayment = async (req, res, next) => {
+  console.log(Student)
   try {
     const { studentId, amount, paymentMode, remarks } = req.body;
 
@@ -17,11 +19,13 @@ exports.createPayment = async (req, res, next) => {
       throw new Error('Student not found');
     }
 
-    // Find the student's fee record
-    const feeRecord = await FeeRecord.findOne({ studentId });
+    // Find the student's fee record, or auto-create it if it doesn't exist
+    let feeRecord = await FeeRecord.findOne({ studentId });
     if (!feeRecord) {
-      res.status(404);
-      throw new Error('No fee record found for this student. Create a fee record first.');
+      const SchoolSetting = require('../models/SchoolSetting');
+      const settings = await SchoolSetting.findOne() || {};
+      const defaultFee = settings.defaultFee || 0;
+      feeRecord = await FeeRecord.create({ studentId, totalFee: defaultFee });
     }
 
     // Auto-generate receipt number: RCP-YYYY-XXXX

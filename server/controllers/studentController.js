@@ -10,6 +10,14 @@ exports.createStudent = async (req, res, next) => {
   try {
     const student = await Student.create(req.body);
 
+    const SchoolSetting = require('../models/SchoolSetting');
+    const FeeRecord = require('../models/FeeRecord');
+    
+    const settings = await SchoolSetting.findOne() || {};
+    const defaultFee = settings.defaultFee || 0;
+    
+    await FeeRecord.create({ studentId: student._id, totalFee: defaultFee });
+
     res.status(201).json({
       success: true,
       message: 'Student created successfully',
@@ -186,25 +194,35 @@ exports.updateStudent = async (req, res, next) => {
  */
 exports.deleteStudent = async (req, res, next) => {
   try {
+    const mongoose = require('mongoose');
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       res.status(400);
       throw new Error('Invalid student ID');
     }
-    const student = await Student.findByIdAndUpdate(
-      req.params.id,
-      { status: 'inactive' },
-      { new: true }
-    );
+
+    const studentId = req.params.id;
+    const student = await Student.findByIdAndDelete(studentId);
 
     if (!student) {
       res.status(404);
       throw new Error('Student not found');
     }
 
+    // Also delete associated records
+    const Document = require('../models/Document');
+    const FeeRecord = require('../models/FeeRecord');
+    const Payment = require('../models/Payment');
+    const Certificate = require('../models/Certificate');
+
+    await Document.deleteMany({ studentId });
+    await FeeRecord.deleteMany({ studentId });
+    await Payment.deleteMany({ studentId });
+    await Certificate.deleteMany({ studentId });
+
     res.status(200).json({
       success: true,
-      message: 'Student deactivated successfully',
-      data: student,
+      message: 'Student and all associated records deleted successfully',
+      data: {},
     });
   } catch (error) {
     next(error);

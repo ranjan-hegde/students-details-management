@@ -46,12 +46,28 @@ exports.getFeeRecord = async (req, res, next) => {
     }).populate('payments');
 
     if (!feeRecord) {
-      res.status(404);
-      throw new Error('Fee record not found for this student');
+      const SchoolSetting = require('../models/SchoolSetting');
+      const settings = await SchoolSetting.findOne() || {};
+      const defaultFee = settings.defaultFee || 0;
+      
+      feeRecord = await FeeRecord.create({
+        studentId: req.params.studentId,
+        totalFee: defaultFee
+      });
+      feeRecord.payments = [];
+    } else if (feeRecord.totalFee === 0) {
+      // Retroactively fix old fee records that were created with 0 fee
+      const SchoolSetting = require('../models/SchoolSetting');
+      const settings = await SchoolSetting.findOne() || {};
+      if (settings.defaultFee) {
+        feeRecord.totalFee = settings.defaultFee;
+        await feeRecord.save();
+      }
     }
 
     // Calculate paid and pending amounts
-    const totalPaid = feeRecord.payments.reduce(
+    const payments = feeRecord.payments || [];
+    const totalPaid = payments.reduce(
       (sum, payment) => sum + payment.amount,
       0
     );
@@ -60,14 +76,10 @@ exports.getFeeRecord = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: {
-        _id: feeRecord._id,
-        studentId: feeRecord.studentId,
-        totalFee: feeRecord.totalFee,
+        ...feeRecord.toObject(),
+        payments,
         totalPaid,
         pendingFee,
-        payments: feeRecord.payments,
-        createdAt: feeRecord.createdAt,
-        updatedAt: feeRecord.updatedAt,
       },
     });
   } catch (error) {

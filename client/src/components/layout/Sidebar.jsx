@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   HiAcademicCap,
@@ -6,6 +7,7 @@ import {
   HiUsers,
   HiCurrencyRupee,
   HiDocumentText,
+  HiCog,
 } from 'react-icons/hi2';
 
 const navItems = [
@@ -14,9 +16,22 @@ const navItems = [
   { name: 'Students', icon: HiUsers, path: '/students' },
   { name: 'Fee Management', icon: HiCurrencyRupee, path: '/fees' },
   { name: 'Certificates', icon: HiDocumentText, path: '/certificates' },
+  { name: 'School Settings', icon: HiCog, path: '/settings' },
 ];
 
 export default function Sidebar() {
+  const [schoolName, setSchoolName] = useState('EduManage');
+
+  useEffect(() => {
+    import('../../services/api.js').then((api) => {
+      api.getSchoolSettings().then((res) => {
+        if (res.data?.data?.schoolName) {
+          setSchoolName(res.data.data.schoolName);
+        }
+      }).catch(() => {});
+    });
+  }, []);
+
   return (
     <aside className="fixed left-0 top-0 w-[260px] h-screen bg-slate-800 text-white flex flex-col z-10">
       {/* Brand */}
@@ -26,7 +41,7 @@ export default function Sidebar() {
             <HiAcademicCap className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight">EduManage</h1>
+            <h1 className="text-lg font-bold tracking-tight">{schoolName}</h1>
             <p className="text-xs text-slate-400">School Management</p>
           </div>
         </div>

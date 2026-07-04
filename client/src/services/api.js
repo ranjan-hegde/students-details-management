@@ -14,13 +14,13 @@ export const createStudent = (data) => api.post('/students', data);
 export const updateStudent = (id, data) => api.put(`/students/${id}`, data);
 export const deleteStudent = (id) => api.delete(`/students/${id}`);
 export const getNextAdmissionNumber = () => api.get('/students/next-admission-number');
-
+export const getStudentById = (id) => api.get(`/students/id/${id}`);
 // ─── Documents ───────────────────────────────────────────────────────────────
 export const uploadDocuments = (studentId, formData) =>
-  api.post(`/students/${studentId}/documents`, formData, {
+  api.post(`/documents/upload/${studentId}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
-export const getDocuments = (studentId) => api.get(`/students/${studentId}/documents`);
+export const getDocuments = (studentId) => api.get(`/documents/${studentId}`);
 export const deleteDocument = (id) => api.delete(`/documents/${id}`);
 
 // ─── Fees ────────────────────────────────────────────────────────────────────
@@ -39,5 +39,9 @@ export const getCertificates = (studentId) => api.get(`/certificates/${studentId
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 export const getDashboardStats = () => api.get('/dashboard/stats');
+
+// ─── Settings ──────────────────────────────────────────────────────────────────
+export const getSchoolSettings = () => api.get('/settings');
+export const updateSchoolSettings = (data) => api.put('/settings', data);
 
 export default api;

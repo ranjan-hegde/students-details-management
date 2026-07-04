@@ -29,6 +29,9 @@ const certificateSchema = new mongoose.Schema({
     type: Object,
     default: {},
   },
+  downloadUrl: {
+    type: String,
+  },
 });
 
 // Index for quick lookups by student

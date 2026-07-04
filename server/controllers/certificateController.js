@@ -1,5 +1,6 @@
 const Certificate = require('../models/Certificate');
 const Student = require('../models/Student');
+const { generatePDF } = require('../utils/pdfGenerator');
 
 /**
  * @desc    Generate a bonafide certificate for a student
@@ -39,16 +40,42 @@ exports.generateBonafide = async (req, res, next) => {
       ...req.body,
     };
 
+    const SchoolSetting = require('../models/SchoolSetting');
+    let settings = await SchoolSetting.findOne() || {};
+
+    // Generate simple HTML for Bonafide
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; text-align: center; padding: 40px;">
+        <h2 style="margin-bottom: 5px; text-transform: uppercase;">${settings.schoolName || 'EduManage School'}</h2>
+        <h4 style="margin-top: 0; color: #555; font-weight: normal;">${settings.schoolAddress || '123 Education Lane, Learning City'}</h4>
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ccc;" />
+        <h3 style="text-decoration: underline; margin-bottom: 30px;">BONAFIDE CERTIFICATE</h3>
+        <p style="line-height: 1.8; font-size: 16px; text-align: justify;">This is to certify that <b>${bonafideData.studentName}</b>, 
+        son/daughter of <b>${bonafideData.fatherName}</b> and <b>${bonafideData.motherName}</b>, 
+        is a bonafide student of our school studying in Class <b>${bonafideData.currentClass}</b>.</p>
+        <p style="text-align: left; font-size: 16px;">Admission Number: <b>${bonafideData.admissionNumber}</b></p>
+        <br><br><br><br>
+        <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+          <p style="text-align: left;">Date: ${new Date().toLocaleDateString('en-GB')}</p>
+          <p style="text-align: right;">Principal Signature</p>
+        </div>
+      </div>
+    `;
+    
+    const downloadUrl = await generatePDF(htmlContent, 'Bonafide');
+
     const certificate = await Certificate.create({
       studentId,
       type: 'bonafide',
       data: bonafideData,
+      downloadUrl,
     });
 
     res.status(201).json({
       success: true,
       message: 'Bonafide certificate generated successfully',
       data: certificate,
+      downloadUrl,
     });
   } catch (error) {
     next(error);
@@ -79,6 +106,9 @@ exports.generateTC = async (req, res, next) => {
     });
     const nextNumber = String(tcCount + 1).padStart(4, '0');
     const tcNumber = `${tcPrefix}${nextNumber}`;
+
+    const SchoolSetting = require('../models/SchoolSetting');
+    let settings = await SchoolSetting.findOne() || {};
 
     // Build TC data — auto-fill from student, override with editable body fields
     const tcData = {
@@ -122,11 +152,17 @@ exports.generateTC = async (req, res, next) => {
       ...req.body,
     };
 
+    const generateTCTemplate = require('../templates/tcTemplate');
+    const htmlContent = generateTCTemplate(tcData, settings);
+    
+    const downloadUrl = await generatePDF(htmlContent, 'TC');
+
     const certificate = await Certificate.create({
       studentId,
       type: 'transfer_certificate',
       tcNumber,
       data: tcData,
+      downloadUrl,
     });
 
     // Optionally mark student as transferred
@@ -138,6 +174,7 @@ exports.generateTC = async (req, res, next) => {
       success: true,
       message: 'Transfer Certificate generated successfully',
       data: certificate,
+      downloadUrl,
     });
   } catch (error) {
     next(error);

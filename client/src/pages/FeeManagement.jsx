@@ -4,7 +4,7 @@ import { HiDocumentText } from 'react-icons/hi2';
 import toast from 'react-hot-toast';
 import html2pdf from 'html2pdf.js';
 import dayjs from 'dayjs';
-import api from '../services/api.js';
+import * as api from '../services/api.js';
 
 const FeeManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -13,12 +13,22 @@ const FeeManagement = () => {
   const [feeRecord, setFeeRecord] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoadingFee, setIsLoadingFee] = useState(false);
+  const [defaultFee, setDefaultFee] = useState('');
 
   // Payment Form State
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentMode, setPaymentMode] = useState('cash');
   const [remarks, setRemarks] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load Settings
+  useEffect(() => {
+    api.getSchoolSettings().then((res) => {
+      if (res.data?.data?.defaultFee) {
+        setDefaultFee(res.data.data.defaultFee);
+      }
+    }).catch(() => {});
+  }, []);
 
   // Search Students
   useEffect(() => {
@@ -294,6 +304,7 @@ const FeeManagement = () => {
                         name="totalFee"
                         required
                         min="1"
+                        defaultValue={defaultFee}
                         className="block w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
                         placeholder="Total Fee Amount"
                       />

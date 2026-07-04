@@ -5,8 +5,10 @@ import Dashboard from './pages/Dashboard';
 import Admission from './pages/Admission';
 import StudentList from './pages/StudentList';
 import StudentDetail from './pages/StudentDetail';
+import EditStudent from './pages/EditStudent';
 import FeeManagement from './pages/FeeManagement';
 import Certificates from './pages/Certificates';
+import SchoolSettings from './pages/SchoolSettings';
 
 function App() {
   return (
@@ -35,8 +37,10 @@ function App() {
           <Route path="admission" element={<Admission />} />
           <Route path="students" element={<StudentList />} />
           <Route path="students/:id" element={<StudentDetail />} />
+          <Route path="students/:id/edit" element={<EditStudent />} />
           <Route path="fees" element={<FeeManagement />} />
           <Route path="certificates" element={<Certificates />} />
+          <Route path="settings" element={<SchoolSettings />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   HiCloudArrowUp,
   HiCheckCircle,
@@ -9,7 +9,7 @@ import {
 } from 'react-icons/hi2';
 import toast from 'react-hot-toast';
 import Header from '../components/layout/Header';
-import { createStudent, uploadDocuments, getNextAdmissionNumber } from '../services/api';
+import { getStudent, updateStudent, uploadDocuments } from '../services/api';
 
 const initialFormData = {
   firstName: '',
@@ -67,8 +67,9 @@ function SectionHeader({ title }) {
   );
 }
 
-export default function Admission() {
+export default function EditStudent() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [formData, setFormData] = useState(initialFormData);
   const [files, setFiles] = useState({});
   const [admissionNumber, setAdmissionNumber] = useState('');
@@ -76,15 +77,29 @@ export default function Admission() {
   const fileInputRefs = useRef({});
 
   useEffect(() => {
-    fetchAdmissionNumber();
-  }, []);
+    fetchStudent();
+  }, [id]);
 
-  const fetchAdmissionNumber = async () => {
+  const fetchStudent = async () => {
     try {
-      const res = await getNextAdmissionNumber();
-      setAdmissionNumber(res.data?.data?.nextAdmissionNumber || res.data?.nextAdmissionNumber || 'ADM-001');
+      const res = await getStudent(id);
+      const student = res.data.data || res.data;
+      setAdmissionNumber(student.admissionNumber || '');
+      
+      // Format dates properly for input type="date"
+      let formattedDob = student.dob;
+      if (formattedDob) {
+        formattedDob = new Date(formattedDob).toISOString().split('T')[0];
+      }
+      
+      setFormData({
+        ...initialFormData,
+        ...student,
+        dob: formattedDob,
+      });
     } catch {
-      setAdmissionNumber('ADM-001');
+      toast.error('Failed to load student details');
+      navigate('/students');
     }
   };
 
@@ -133,26 +148,24 @@ export default function Admission() {
 
     setSubmitting(true);
     try {
-      const studentRes = await createStudent({ ...formData, admissionNumber });
-      const studentId = studentRes.data?.data?._id || studentRes.data?._id;
+      // Update student details
+      await updateStudent(id, formData);
 
       // Upload documents if any
       const fileKeys = Object.keys(files);
-      if (fileKeys.length > 0 && studentId) {
+      if (fileKeys.length > 0) {
         await Promise.all(fileKeys.map((key) => {
           const fd = new FormData();
           fd.append('files', files[key]);
           fd.append('type', key);
-          return uploadDocuments(studentId, fd);
+          return uploadDocuments(id, fd);
         }));
       }
 
-      toast.success('Student admitted successfully!');
-      setFormData(initialFormData);
-      setFiles({});
-      fetchAdmissionNumber();
+      toast.success('Student details updated successfully!');
+      navigate(`/students/${id}`);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create student record');
+      toast.error(error.response?.data?.message || 'Failed to update student record');
     } finally {
       setSubmitting(false);
     }
@@ -168,16 +181,10 @@ export default function Admission() {
 
   return (
     <div>
-      <Header title="New Admission" subtitle="Register a new student in the system" />
-
-      {/* Admission Number Badge */}
-      <div className="mb-6 flex items-center gap-3">
-        <span className="text-sm text-gray-600">Admission Number:</span>
-        <span className="inline-flex items-center gap-1.5 bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-sm font-semibold">
-          <HiDocumentPlus className="w-4 h-4" />
-          {admissionNumber}
-        </span>
-      </div>
+      <Header
+        title="Edit Student Profile"
+        subtitle={`Updating details for ${admissionNumber}`}
+      />
 
       <form onSubmit={handleSubmit}>
         {/* Section 1: Student Details */}
@@ -403,30 +410,21 @@ export default function Admission() {
         </div>
 
         {/* Submit Buttons */}
-        <div className="flex items-center gap-4">
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={() => navigate(`/students/${id}`)}
+            className="px-6 py-2 border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 transition font-medium flex items-center gap-2"
+          >
+            Cancel
+          </button>
           <button
             type="submit"
             disabled={submitting}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {submitting ? (
-              <>
-                <HiArrowPath className="w-5 h-5 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              <>
-                <HiCheckCircle className="w-5 h-5" />
-                Submit Admission
-              </>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={handleReset}
-            className="border border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 rounded-lg font-medium transition"
-          >
-            Reset Form
+            <HiCloudArrowUp className="w-5 h-5" />
+            {submitting ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </form>

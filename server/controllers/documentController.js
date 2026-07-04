@@ -38,7 +38,7 @@ exports.uploadDocuments = async (req, res, next) => {
           studentId,
           type,
           fileName: file.originalname,
-          filePath: file.path,
+          filePath: `uploads/${studentId}/${file.filename}`,
         })
       )
     );
@@ -63,9 +63,23 @@ exports.getStudentDocuments = async (req, res, next) => {
       studentId: req.params.studentId,
     }).sort({ uploadedAt: -1 });
 
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const documentsWithUrl = documents.map(doc => {
+      let relPath = doc.filePath.replace(/\\/g, '/');
+      const uploadIndex = relPath.indexOf('uploads/');
+      if (uploadIndex !== -1) {
+        relPath = relPath.substring(uploadIndex);
+      }
+      const encodedRelPath = relPath.split('/').map(p => encodeURIComponent(p)).join('/');
+      return {
+        ...doc.toObject(),
+        url: `${baseUrl}/${encodedRelPath}`
+      };
+    });
+
     res.status(200).json({
       success: true,
-      data: documents,
+      data: documentsWithUrl,
     });
   } catch (error) {
     next(error);
