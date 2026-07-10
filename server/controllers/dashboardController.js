@@ -21,36 +21,22 @@ exports.getDashboardStats = async (req, res, next) => {
       status: 'active',
     });
 
-    // --- Total pending fees (aggregate across all fee records) ---
-    const feeAggregation = await FeeRecord.aggregate([
-      {
-        // Lookup all payments for each fee record
-        $lookup: {
-          from: 'payments',
-          localField: 'payments',
-          foreignField: '_id',
-          as: 'paymentDetails',
-        },
-      },
-      {
-        // Calculate total paid per fee record
-        $addFields: {
-          totalPaid: { $sum: '$paymentDetails.amount' },
-          pendingFee: {
-            $subtract: ['$totalFee', { $sum: '$paymentDetails.amount' }],
-          },
-        },
-      },
-      {
-        // Sum all pending fees across every record
-        $group: {
-          _id: null,
-          totalPendingFees: { $sum: '$pendingFee' },
-        },
-      },
+    // --- School Settings (for default fee) ---
+    const SchoolSetting = require('../models/SchoolSetting');
+    const settings = await SchoolSetting.findOne();
+    const defaultFee = settings?.defaultFee || 0;
+
+    // --- Total Expected Fees ---
+    const totalExpectedFees = totalStudents * defaultFee;
+
+    // --- Total Paid Fees (sum of all payments) ---
+    const paymentAgg = await Payment.aggregate([
+      { $group: { _id: null, totalPaid: { $sum: '$amount' } } },
     ]);
-    const totalPendingFees =
-      feeAggregation.length > 0 ? feeAggregation[0].totalPendingFees : 0;
+    const totalPaidFees = paymentAgg.length > 0 ? paymentAgg[0].totalPaid : 0;
+
+    // --- Total Pending Fees ---
+    const totalPendingFees = totalExpectedFees - totalPaidFees;
 
     // --- Active classes (distinct classes among active students) ---
     const activeClasses = await Student.distinct('currentClass', {
@@ -120,15 +106,48 @@ exports.getDashboardStats = async (req, res, next) => {
       },
     ]);
 
+    // --- Recent Payments (last 5 payments with student details) ---
+    const recentPayments = await Payment.aggregate([
+      { $sort: { paymentDate: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: 'students',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'student',
+        },
+      },
+      { $unwind: '$student' },
+      {
+        $project: {
+          _id: 1,
+          amount: 1,
+          paymentDate: 1,
+          paymentMode: 1,
+          receiptNumber: 1,
+          studentId: 1,
+          studentName: {
+            $concat: ['$student.firstName', ' ', '$student.lastName'],
+          },
+          currentClass: '$student.currentClass',
+          section: '$student.section',
+        },
+      },
+    ]);
+
     res.status(200).json({
       success: true,
       data: {
         totalStudents,
         newAdmissionsThisMonth,
+        totalExpectedFees,
+        totalPaidFees,
         totalPendingFees,
         activeClasses,
         recentAdmissions,
         pendingFeeAlerts,
+        recentPayments,
       },
     });
   } catch (error) {

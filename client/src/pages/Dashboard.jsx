@@ -35,36 +35,18 @@ const SkeletonRow = () => (
   </tr>
 );
 
-// Fallback mock data
-const mockStats = {
-  totalStudents: 1247,
-  newAdmissions: 38,
-  pendingFees: 245600,
-  activeClasses: 24,
-};
-
-const mockRecentAdmissions = [
-  { _id: '1', firstName: 'Aarav', lastName: 'Sharma', currentClass: '5', section: 'A', createdAt: '2026-06-20', status: 'Active' },
-  { _id: '2', firstName: 'Priya', lastName: 'Patel', currentClass: '8', section: 'B', createdAt: '2026-06-19', status: 'Active' },
-  { _id: '3', firstName: 'Rohan', lastName: 'Kumar', currentClass: '3', section: 'A', createdAt: '2026-06-18', status: 'Active' },
-  { _id: '4', firstName: 'Ananya', lastName: 'Singh', currentClass: '10', section: 'C', createdAt: '2026-06-17', status: 'Active' },
-  { _id: '5', firstName: 'Vikram', lastName: 'Reddy', currentClass: '7', section: 'B', createdAt: '2026-06-16', status: 'Active' },
-];
-
-const mockPendingFees = [
-  { _id: '1', firstName: 'Rahul', lastName: 'Verma', currentClass: '6', section: 'A', pendingAmount: 15000 },
-  { _id: '2', firstName: 'Sneha', lastName: 'Gupta', currentClass: '9', section: 'B', pendingAmount: 22500 },
-  { _id: '3', firstName: 'Arjun', lastName: 'Nair', currentClass: '4', section: 'A', pendingAmount: 8000 },
-  { _id: '4', firstName: 'Kavya', lastName: 'Joshi', currentClass: '11', section: 'C', pendingAmount: 35000 },
-  { _id: '5', firstName: 'Aditya', lastName: 'Mishra', currentClass: '2', section: 'B', pendingAmount: 12000 },
-];
-
 export default function Dashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState(mockStats);
-  const [recentAdmissions, setRecentAdmissions] = useState(mockRecentAdmissions);
-  const [pendingFees, setPendingFees] = useState(mockPendingFees);
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    expectedFees: 0,
+    paidFees: 0,
+    pendingFees: 0,
+  });
+  const [recentAdmissions, setRecentAdmissions] = useState([]);
+  const [pendingFees, setPendingFees] = useState([]);
+  const [recentPayments, setRecentPayments] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -74,10 +56,18 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     try {
       const response = await getDashboardStats();
-      const data = response.data;
-      if (data.stats) setStats(data.stats);
-      if (data.recentAdmissions) setRecentAdmissions(data.recentAdmissions);
-      if (data.pendingFees) setPendingFees(data.pendingFees);
+      const apiData = response.data?.data;
+      if (apiData) {
+        setStats({
+          totalStudents: apiData.totalStudents || 0,
+          expectedFees: apiData.totalExpectedFees || 0,
+          paidFees: apiData.totalPaidFees || 0,
+          pendingFees: apiData.totalPendingFees || 0,
+        });
+        if (apiData.recentAdmissions) setRecentAdmissions(apiData.recentAdmissions);
+        if (apiData.pendingFeeAlerts) setPendingFees(apiData.pendingFeeAlerts);
+        if (apiData.recentPayments) setRecentPayments(apiData.recentPayments);
+      }
     } catch (error) {
       // Use mock data on failure — no error toast needed for dashboard fallback
       console.log('Using fallback dashboard data');
@@ -114,25 +104,25 @@ export default function Dashboard() {
       iconColor: 'text-blue-600',
     },
     {
-      label: 'New Admissions',
-      value: formatNumber(stats.newAdmissions),
-      icon: HiUserPlus,
+      label: 'Expected Total Fees',
+      value: formatCurrency(stats.expectedFees),
+      icon: HiAcademicCap,
+      bgColor: 'bg-indigo-100',
+      iconColor: 'text-indigo-600',
+    },
+    {
+      label: 'Total Fees Paid',
+      value: formatCurrency(stats.paidFees),
+      icon: HiCurrencyRupee,
       bgColor: 'bg-green-100',
       iconColor: 'text-green-600',
     },
     {
-      label: 'Pending Fees',
+      label: 'Remaining Fees Left',
       value: formatCurrency(stats.pendingFees),
-      icon: HiCurrencyRupee,
-      bgColor: 'bg-amber-100',
-      iconColor: 'text-amber-600',
-    },
-    {
-      label: 'Active Classes',
-      value: formatNumber(stats.activeClasses),
-      icon: HiAcademicCap,
-      bgColor: 'bg-purple-100',
-      iconColor: 'text-purple-600',
+      icon: HiExclamationTriangle,
+      bgColor: 'bg-red-100',
+      iconColor: 'text-red-600',
     },
   ];
 
@@ -173,8 +163,8 @@ export default function Dashboard() {
         </div>
       </form>
 
-      {/* Two Column Section */}
-      <div className="grid grid-cols-2 gap-6">
+      {/* Grid Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Admissions */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -201,6 +191,13 @@ export default function Dashboard() {
             <tbody className="divide-y divide-gray-100">
               {loading
                 ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
+                : recentAdmissions.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="px-6 py-8 text-center text-gray-500 text-sm">
+                        No recent admissions found.
+                      </td>
+                    </tr>
+                  )
                 : recentAdmissions.map((student) => (
                     <tr
                       key={student._id}
@@ -214,7 +211,7 @@ export default function Dashboard() {
                         {student.currentClass}-{student.section}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {dayjs(student.createdAt).format('DD MMM YYYY')}
+                        {dayjs(student.admissionDate || student.createdAt).format('DD MMM YYYY')}
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
@@ -254,23 +251,87 @@ export default function Dashboard() {
                     </div>
                   </div>
                 ))
+              : pendingFees.length === 0 ? (
+                  <div className="px-6 py-8 text-center text-gray-500 text-sm">
+                    No pending fee alerts.
+                  </div>
+                )
               : pendingFees.map((item) => (
                   <div
                     key={item._id}
                     className="px-6 py-4 hover:bg-gray-50 transition cursor-pointer flex items-center justify-between"
-                    onClick={() => navigate(`/students/${item._id}`)}
+                    onClick={() => navigate(`/students/${item.studentId}`)}
                   >
                     <div>
                       <p className="text-sm font-medium text-gray-800">
-                        {item.firstName} {item.lastName}
+                        {item.studentName || item.firstName + ' ' + item.lastName}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5">
                         Class {item.currentClass}-{item.section}
                       </p>
                     </div>
                     <span className="text-sm font-semibold text-red-600">
-                      {formatCurrency(item.pendingAmount)}
+                      {formatCurrency(item.pendingFee || item.pendingAmount)}
                     </span>
+                  </div>
+                ))}
+          </div>
+        </div>
+
+        {/* Recent Payments */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <HiCurrencyRupee className="w-5 h-5 text-green-600" />
+              <h2 className="text-lg font-semibold text-gray-800">Recent Payments</h2>
+            </div>
+            <button
+              onClick={() => navigate('/fees')}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium transition"
+            >
+              View All →
+            </button>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {loading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="px-6 py-4 animate-pulse">
+                    <div className="flex justify-between items-center">
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-32" />
+                        <div className="h-3 bg-gray-200 rounded w-20" />
+                      </div>
+                      <div className="h-5 bg-gray-200 rounded w-16" />
+                    </div>
+                  </div>
+                ))
+              : recentPayments.length === 0 ? (
+                  <div className="px-6 py-8 text-center text-gray-500 text-sm">
+                    No recent payments.
+                  </div>
+                )
+              : recentPayments.map((item) => (
+                  <div
+                    key={item._id}
+                    className="px-6 py-4 hover:bg-gray-50 transition cursor-pointer flex items-center justify-between"
+                    onClick={() => navigate(`/students/${item.studentId}`)}
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">
+                        {item.studentName}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Class {item.currentClass}-{item.section}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-green-600">
+                        +{formatCurrency(item.amount)}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {dayjs(item.paymentDate).format('DD MMM, h:mm a')}
+                      </p>
+                    </div>
                   </div>
                 ))}
           </div>
