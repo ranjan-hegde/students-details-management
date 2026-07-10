@@ -19,6 +19,9 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const certificateRoutes = require('./routes/certificateRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const schoolSettingRoutes = require('./routes/schoolSettingRoutes');
+const teacherRoutes = require('./routes/teacherRoutes');
+const timetableRoutes = require('./routes/timetableRoutes');
+const resultRoutes = require('./routes/resultRoutes');
 
 // Import error handler middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -66,6 +69,9 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/settings', schoolSettingRoutes);
+app.use('/api/teachers', teacherRoutes);
+app.use('/api/timetable', timetableRoutes);
+app.use('/api/results', resultRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -8,6 +8,8 @@ import {
   HiCurrencyRupee,
   HiDocumentText,
   HiCog,
+  HiUserGroup,
+  HiClipboardDocumentList,
 } from 'react-icons/hi2';
 
 const navItems = [
@@ -16,6 +18,8 @@ const navItems = [
   { name: 'Students', icon: HiUsers, path: '/students' },
   { name: 'Fee Management', icon: HiCurrencyRupee, path: '/fees' },
   { name: 'Certificates', icon: HiDocumentText, path: '/certificates' },
+  { name: 'Teachers', icon: HiUserGroup, path: '/teachers' },
+  { name: 'Results', icon: HiClipboardDocumentList, path: '/results' },
   { name: 'School Settings', icon: HiCog, path: '/settings' },
 ];
 

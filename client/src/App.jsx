@@ -8,6 +8,8 @@ import StudentDetail from './pages/StudentDetail';
 import EditStudent from './pages/EditStudent';
 import FeeManagement from './pages/FeeManagement';
 import Certificates from './pages/Certificates';
+import TeacherSchedule from './pages/TeacherSchedule';
+import Results from './pages/Results';
 import SchoolSettings from './pages/SchoolSettings';
 
 function App() {
@@ -40,6 +42,8 @@ function App() {
           <Route path="students/:id/edit" element={<EditStudent />} />
           <Route path="fees" element={<FeeManagement />} />
           <Route path="certificates" element={<Certificates />} />
+          <Route path="teachers" element={<TeacherSchedule />} />
+          <Route path="results" element={<Results />} />
           <Route path="settings" element={<SchoolSettings />} />
         </Route>
       </Routes>

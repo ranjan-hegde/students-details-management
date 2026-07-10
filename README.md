@@ -40,6 +40,16 @@ A full-stack **MERN** (MongoDB, Express.js, React.js, Node.js) web application f
   - Fields 14–25 editable by staff
 - Download certificates as PDF
 
+### 👨‍🏫 Teachers & Timetable
+- Manage teacher profiles, subjects, and assigned classes
+- Class-wise weekly timetable generation
+- View individual teacher schedules
+
+### 📈 Academic Results
+- Enter subject-wise marks for students
+- Auto-calculation of totals, percentages, and grades
+- View class-wise and individual student performance reports
+
 ### ⚙️ School Settings
 - Configure school name, address, and details
 - Used in certificate headers and receipts
@@ -82,9 +92,9 @@ A full-stack **MERN** (MongoDB, Express.js, React.js, Node.js) web application f
 │
 ├── server/                     # Express Backend
 │   ├── config/db.js            # MongoDB connection
-│   ├── models/                 # Mongoose schemas (6 models)
-│   ├── controllers/            # Business logic (7 controllers)
-│   ├── routes/                 # API route definitions (7 routes)
+│   ├── models/                 # Mongoose schemas (9 models)
+│   ├── controllers/            # Business logic (10 controllers)
+│   ├── routes/                 # API route definitions (10 routes)
 │   ├── middleware/             # Error handler, Multer upload config
 │   ├── templates/              # HTML templates for PDF generation
 │   ├── uploads/                # Uploaded files (per student)
@@ -105,6 +115,9 @@ A full-stack **MERN** (MongoDB, Express.js, React.js, Node.js) web application f
 | `FeeRecord` | Total fee per student, linked to payments |
 | `Payment` | Individual payment entries with receipt numbers |
 | `Certificate` | Generated certificate records (Bonafide, TC) |
+| `Teacher` | Teacher personal info, subjects, and assigned classes |
+| `Timetable` | Class and teacher weekly schedule entries |
+| `Result` | Student examination marks and grades |
 | `SchoolSetting` | School name, address, configuration |
 
 ---
@@ -118,6 +131,9 @@ A full-stack **MERN** (MongoDB, Express.js, React.js, Node.js) web application f
 | Fees | `POST /api/fees` · `GET /api/fees/:studentId` · `PUT /api/fees/:id` |
 | Payments | `POST /api/payments` · `GET /api/payments/:studentId` |
 | Certificates | `POST /api/certificates/bonafide/:studentId` · `POST /api/certificates/tc/:studentId` · `GET /api/certificates/:studentId` |
+| Teachers | `POST /api/teachers` · `GET /api/teachers` · `GET /api/teachers/:id` · `PUT /api/teachers/:id` · `DELETE /api/teachers/:id` · `GET /api/teachers/next-id` |
+| Timetable | `POST /api/timetable/bulk` · `GET /api/timetable` · `GET /api/timetable/teacher/:teacherId` · `DELETE /api/timetable/:id` |
+| Results | `POST /api/results` · `GET /api/results` · `GET /api/results/student/:studentId` · `PUT /api/results/:id` · `DELETE /api/results/:id` |
 | Dashboard | `GET /api/dashboard/stats` |
 | Settings | `GET /api/settings` · `PUT /api/settings` |
 

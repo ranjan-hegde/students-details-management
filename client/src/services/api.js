@@ -44,4 +44,25 @@ export const getDashboardStats = () => api.get('/dashboard/stats');
 export const getSchoolSettings = () => api.get('/settings');
 export const updateSchoolSettings = (data) => api.put('/settings', data);
 
+// ─── Teachers ────────────────────────────────────────────────────────────────
+export const getTeachers = (params) => api.get('/teachers', { params });
+export const getTeacher = (id) => api.get(`/teachers/${id}`);
+export const createTeacher = (data) => api.post('/teachers', data);
+export const updateTeacher = (id, data) => api.put(`/teachers/${id}`, data);
+export const deleteTeacher = (id) => api.delete(`/teachers/${id}`);
+export const getNextTeacherId = () => api.get('/teachers/next-id');
+
+// ─── Timetable ───────────────────────────────────────────────────────────────
+export const getTimetableByClass = (params) => api.get('/timetable', { params });
+export const getTimetableByTeacher = (teacherId) => api.get(`/timetable/teacher/${teacherId}`);
+export const saveBulkTimetable = (data) => api.post('/timetable/bulk', data);
+export const deleteTimetableEntry = (id) => api.delete(`/timetable/${id}`);
+
+// ─── Results ─────────────────────────────────────────────────────────────────
+export const createResult = (data) => api.post('/results', data);
+export const getResultsByStudent = (studentId) => api.get(`/results/student/${studentId}`);
+export const getResultsByClass = (params) => api.get('/results', { params });
+export const updateResult = (id, data) => api.put(`/results/${id}`, data);
+export const deleteResult = (id) => api.delete(`/results/${id}`);
+
 export default api;
