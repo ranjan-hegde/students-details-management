@@ -116,19 +116,9 @@ exports.getTimetableByClass = async (req, res, next) => {
       .sort({ period: 1 })
       .lean();
 
-    // Group entries by day
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const grouped = {};
-    for (const day of days) {
-      const dayEntries = entries.filter((e) => e.day === day);
-      if (dayEntries.length > 0) {
-        grouped[day] = dayEntries;
-      }
-    }
-
     res.status(200).json({
       success: true,
-      data: grouped,
+      data: entries,
     });
   } catch (error) {
     next(error);

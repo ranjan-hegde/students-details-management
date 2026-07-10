@@ -16,6 +16,7 @@ router.get('/teacher/:teacherId', getTimetableByTeacher);
 
 // POST /api/timetable — Create or update a single timetable entry
 // GET  /api/timetable — Get timetable by class+section (query params)
+
 router.route('/').post(createOrUpdateEntry).get(getTimetableByClass);
 
 // DELETE /api/timetable/:id — Delete a timetable entry
