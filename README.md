@@ -50,6 +50,32 @@ A full-stack **MERN** (MongoDB, Express.js, React.js, Node.js) web application f
 - Auto-calculation of totals, percentages, and grades
 - View class-wise and individual student performance reports
 
+### 📋 Student Attendance
+- Mark daily attendance per class and section
+- View monthly attendance reports with color-coded percentages
+- Bulk mark present/absent
+
+### 📢 Notices & Announcements
+- Post school-wide or class-specific notices
+- Priority levels (Normal, Important, Urgent)
+- Active notices ticker on the dashboard
+
+### 📅 Events Calendar
+- Visual monthly calendar showing upcoming events
+- Color-coded event types (Exam, Holiday, Sports, etc.)
+- Click a date to view or add events
+
+### 📊 Exam Schedule
+- Define exam timetables per class and section
+- Add subjects, dates, timings, and max marks
+- Clean expandable table view for schedules
+
+### 📈 Reports & Analytics
+- Data-driven insights with visual charts and progress bars
+- Class-wise attendance percentage and fee collection summary
+- Result analytics (class averages, pass/fail count)
+- Student strength breakdown
+
 ### ⚙️ School Settings
 - Configure school name, address, and details
 - Used in certificate headers and receipts
@@ -119,6 +145,10 @@ A full-stack **MERN** (MongoDB, Express.js, React.js, Node.js) web application f
 | `Timetable` | Class and teacher weekly schedule entries |
 | `Result` | Student examination marks and grades |
 | `SchoolSetting` | School name, address, configuration |
+| `Attendance` | Daily student attendance records by class/section |
+| `Notice` | School announcements with priority and target classes |
+| `Event` | Calendar events with type and color coding |
+| `ExamSchedule` | Exam timetables for classes with subject details |
 
 ---
 
@@ -136,6 +166,11 @@ A full-stack **MERN** (MongoDB, Express.js, React.js, Node.js) web application f
 | Results | `POST /api/results` · `GET /api/results` · `GET /api/results/student/:studentId` · `PUT /api/results/:id` · `DELETE /api/results/:id` |
 | Dashboard | `GET /api/dashboard/stats` |
 | Settings | `GET /api/settings` · `PUT /api/settings` |
+| Attendance | `POST /api/attendance` · `GET /api/attendance` · `GET /api/attendance/student/:studentId` · `GET /api/attendance/report` · `PUT /api/attendance/:id` |
+| Notices | `POST /api/notices` · `GET /api/notices` · `GET /api/notices/active` · `GET /api/notices/:id` · `PUT /api/notices/:id` · `DELETE /api/notices/:id` |
+| Events | `POST /api/events` · `GET /api/events` · `GET /api/events/:id` · `PUT /api/events/:id` · `DELETE /api/events/:id` |
+| Exam Schedules | `POST /api/exam-schedules` · `GET /api/exam-schedules` · `GET /api/exam-schedules/:id` · `PUT /api/exam-schedules/:id` · `DELETE /api/exam-schedules/:id` |
+| Reports | `GET /api/reports/attendance` · `GET /api/reports/fees` · `GET /api/reports/results` · `GET /api/reports/strength` |
 
 ---
 

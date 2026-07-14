@@ -10,16 +10,26 @@ import {
   HiCog,
   HiUserGroup,
   HiClipboardDocumentList,
+  HiClipboardDocumentCheck,
+  HiMegaphone,
+  HiCalendarDays,
+  HiCalendar,
+  HiChartBarSquare,
 } from 'react-icons/hi2';
 
 const navItems = [
   { name: 'Dashboard', icon: HiHome, path: '/' },
   { name: 'Admissions', icon: HiUserPlus, path: '/admission' },
   { name: 'Students', icon: HiUsers, path: '/students' },
+  { name: 'Attendance', icon: HiClipboardDocumentCheck, path: '/attendance' },
   { name: 'Fee Management', icon: HiCurrencyRupee, path: '/fees' },
+  { name: 'Results', icon: HiClipboardDocumentList, path: '/results' },
+  { name: 'Exam Schedule', icon: HiCalendar, path: '/exam-schedules' },
   { name: 'Certificates', icon: HiDocumentText, path: '/certificates' },
   { name: 'Teachers', icon: HiUserGroup, path: '/teachers' },
-  { name: 'Results', icon: HiClipboardDocumentList, path: '/results' },
+  { name: 'Notices', icon: HiMegaphone, path: '/notices' },
+  { name: 'Events Calendar', icon: HiCalendarDays, path: '/events' },
+  { name: 'Reports', icon: HiChartBarSquare, path: '/reports' },
   { name: 'School Settings', icon: HiCog, path: '/settings' },
 ];
 
@@ -52,7 +62,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-1">
+      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         {navItems.map((item) => (
           <NavLink
             key={item.name}

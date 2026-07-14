@@ -11,6 +11,11 @@ import Certificates from './pages/Certificates';
 import TeacherSchedule from './pages/TeacherSchedule';
 import Results from './pages/Results';
 import SchoolSettings from './pages/SchoolSettings';
+import Attendance from './pages/Attendance';
+import Notices from './pages/Notices';
+import EventCalendar from './pages/EventCalendar';
+import ExamSchedule from './pages/ExamSchedule';
+import Reports from './pages/Reports';
 
 function App() {
   return (
@@ -44,6 +49,11 @@ function App() {
           <Route path="certificates" element={<Certificates />} />
           <Route path="teachers" element={<TeacherSchedule />} />
           <Route path="results" element={<Results />} />
+          <Route path="attendance" element={<Attendance />} />
+          <Route path="notices" element={<Notices />} />
+          <Route path="events" element={<EventCalendar />} />
+          <Route path="exam-schedules" element={<ExamSchedule />} />
+          <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<SchoolSettings />} />
         </Route>
       </Routes>

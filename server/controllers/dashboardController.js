@@ -1,6 +1,9 @@
 const Student = require('../models/Student');
 const FeeRecord = require('../models/FeeRecord');
 const Payment = require('../models/Payment');
+const Attendance = require('../models/Attendance');
+const Event = require('../models/Event');
+const Notice = require('../models/Notice');
 
 /**
  * @desc    Get dashboard statistics
@@ -136,6 +139,34 @@ exports.getDashboardStats = async (req, res, next) => {
       },
     ]);
 
+    // --- Today's Attendance Summary ---
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    const todayAttendanceDocs = await Attendance.find({
+      date: { $gte: todayStart, $lte: todayEnd },
+    }).lean();
+
+    let totalRecords = 0;
+    let presentCount = 0;
+    let absentCount = 0;
+    for (const doc of todayAttendanceDocs) {
+      for (const record of doc.records) {
+        totalRecords++;
+        if (record.status === 'Present') presentCount++;
+        else if (record.status === 'Absent') absentCount++;
+      }
+    }
+    const todayAttendance = { totalRecords, presentCount, absentCount };
+
+    // --- Upcoming Events (next 5) ---
+    const upcomingEvents = await Event.find({ eventDate: { $gte: todayStart } })
+      .sort({ eventDate: 1 })
+      .limit(5)
+      .lean();
+
+    // --- Active Notices Count ---
+    const activeNoticesCount = await Notice.countDocuments({ isActive: true });
+
     res.status(200).json({
       success: true,
       data: {
@@ -148,6 +179,9 @@ exports.getDashboardStats = async (req, res, next) => {
         recentAdmissions,
         pendingFeeAlerts,
         recentPayments,
+        todayAttendance,
+        upcomingEvents,
+        activeNoticesCount,
       },
     });
   } catch (error) {
